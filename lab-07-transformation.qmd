@@ -1,0 +1,267 @@
+---
+title: "lab-07"
+author: "Elaine Lu"
+number-sections: true
+number-depth: 2
+---
+
+```{r}
+#| label: package installation
+#| message: false
+pak::pak("quanteda/quanteda.corpora")
+sotu_corpus <- quanteda.corpora::data_corpus_sotu
+sotu_df <- tidytext::tidy(sotu_corpus)
+```
+
+
+```{r load-packages}
+#| label: load-packages
+#| message: false
+
+# Load packages
+library(readr)        # reading/ writing datasets
+library(knitr)        # for `kable()` function
+library(dplyr)        # basic data manipulation
+library(lubridate)    # date manipulation
+library(tidytext)     # text manipulation
+library(textdata)     # sentiment lexicons
+library(qtalrkit)     # data dictionary creation
+library(ggplot2)      # plotting
+library(fs)           # file system operations
+```
+
+
+# Description of Curated Dataset 
+
+The State of the Union Addresses (SOTU) dataset will be used as the sample operating dataset for this lab. It includes the State of the Union Addresses from 1790 to 2019. 
+
+Then, to see the observations and variables in the dataset, we need to pull out the data dictionary first: 
+
+```{r}
+#| label: tbl-sotu-curated-dd
+#| tbl-cap: Data dictionary for the State of the Union dataset
+#| echo: false
+#| message: false
+
+# Load the data dictionary
+read_csv("../lab-07/data/derived/sotu_curated_dd.csv") |>
+  kable()
+```
+
+
+According to above data dictionary, there are 7 variables, including `text`, `president`, `party`, `dates`, etc. The units of observation in the curated dataset should be `text`, for the reason that all the other variables are not only tied to and centered at `text` but also other variables, like `predident` or `party` can be repetitive--one president may give several Addresses, while multiple presidents may from the same party. 
+
+# Date Structure and Research Question 
+
+For this lab, I want to conduct a comprative sentiment analysis regarding all the Addresses President Barack Obama and Trump gave. Hence, for this research, I only need data from 2009 to 2019--8 years of Obama and 2 years of Trump, since the data do not include addresses after 2019. 
+
+## Units of observations and variables regarding the research question 
+
+To compare and contract President Obama and Trump's given the State of the Union Addresses--the message from the president to congress--we only need `text`, `date`, `address_type`, `party`, and `the president's last name` for the reason that the Obama is the only president in the dataset and in reality with the last name *Obama* or *Trump*, all of his addresses were delivered the same manner, and he only belongs to one party. 
+
+The unit of observation for this project will still be text, since all the analsis will be conducted based on text. However, I will filtered all the text not given by President Obama or Trump and deleted all other irrelevant variables for this research.
+
+## Idealized data structured for the transformed dataset
+
+An idealized structure for the topic modeling dataset is seen in @tbl-topic-ideal.
+
+| variable | name | type | description |
+|----------|------|-------------|--|
+| address_id | Address ID | integer | Unique identifier for each address |
+| address_year | Address Year | integer | Year of the address (from 2009 to 2017) |
+| type | Word type | character | Individual words from the `text` variable |
+| frequency | Frequency | integer | Frequency of the word type in the `text` variable |
+| tf_idf | TF-IDF | numeric | TF-IDF of the word type in the `text` variable |
+
+: Idealized structure for the topic modeling dataset {#tbl-topic-ideal tbl-colwidths="[15, 15, 15, 55]"}
+
+# Transformation
+
+First, we need to load the data before processing it: 
+
+```{r}
+#| label: load-data
+#| message: false
+
+# Load the data
+sotu_tbl <- read_csv("../lab-07/data/derived/sotu_curated.csv")
+
+# Preview
+glimpse(sotu_tbl)
+```
+
+For sentiment analysis, we need to create the following metadata columns:
+
+- `address_id`: Unique identifier for each address
+- `address_year`: Year of the address
+
+`address_year` is essentially date. Hence, we may extract the data from the `date` variable and add it to a column `address_year`. 
+
+
+Then, we filter only addresses from 2009 to 2019: 
+
+```{r}
+#| label: sentiment-metadata-address-year
+
+# Add the address_year
+sotu_tbl <-
+  sotu_tbl |>
+  mutate(address_year = year(date))
+
+# Preview
+glimpse(sotu_tbl)
+```
+
+```{r}
+#| label: sentiment-metadata-filter-years
+# Filter the data for addresses from Predisent Obama
+sotu_tbl <- sotu_tbl |>
+  filter(year(date) >= 2009 & year(date) <= 2019)
+
+# Preview
+glimpse(sotu_tbl)
+```
+We now down to 9 rows--9 texts to analyze, but still, we need to differentiate the ones from Obama and Trump, and I lable the ones from Obama to be "OB" and the ones from Trump to be TR: 
+
+```{r}
+#| label: sentiment-metadata-period
+
+# Add the period
+sotu_tbl <-
+  sotu_tbl |>
+  mutate(period = case_when(
+    address_year < 2017 ~ "OB",
+    address_year >= 2018 ~ "TR"
+  ))
+
+# Preview
+glimpse(sotu_tbl)
+```
+Last but not least, I create an `address_id` as an unique identifier for every address given: 
+
+```{r}
+#| label: sentiment-metadata-address-id
+
+# Add the address_id
+sotu_tbl <-
+  sotu_tbl |>
+  mutate(address_id = row_number())
+
+# Preview
+glimpse(sotu_tbl)
+```
+Now, let's drop all the variables we don't necessary need for this project to reduce some complexity. All `delivery` were spoken; variables like `first_name` or `address_type` are not really relevant to this project; and since we already classified which period (either *OB* or *TR*) each address belongs to, we can now drop all four of these variables, leaving `address_id`, `address_year`, `president`, `party`, `period`, `text`: 
+
+```{r}
+#| label: sentiment-metadata-drop-columns
+
+sotu_tbl <-
+  sotu_tbl |>
+  select(address_id, address_year, president, party, period, text)
+
+# Preview
+glimpse(sotu_tbl)
+```
+The next step is to tokenize `text`. Since mine dataset is rather small, which only contains 9 rows, there is no need to run diagnostics to check the distribution of address count and party representation by period. 
+
+```{r}
+#| label: sentiment-tokenize-text
+
+# Tokenize the `text` variable
+sotu_tbl <-
+  sotu_tbl |>
+  unnest_tokens(token, text) |>
+  group_by(address_id) |>
+  mutate(token_id = row_number()) |>
+  ungroup()
+
+# Preview
+glimpse(sotu_tbl)
+```
+After complete the tokenization process, we now need to introduce the `bing` lexicon, which identifies whether or not a word is *positive* or *negative* while leaving non-content words alone. 
+
+```{r}
+#| label: sentiment-lexicon
+
+# Load the bing lexicon
+bing_lexicon <- get_sentiments("bing")
+
+# Preview
+glimpse(bing_lexicon)
+```
+From the result above, we can see that now we have 6,786 words, and they are identified as either negative or positive, but this new variable `sentiment` hasn't been added to our previously curated dataset yet. Hence, we now introduce the `left_join()` function to "attach" the `sentiment` column to the original dataset. `left_join()`, literally, preserves all the rows from the left table, while right join preserves all the rows from the right table: 
+
+```{r}
+#| label: sentiment-join-lexicon
+
+# Join the sotu_tbl and bing_lexicon datasets
+sotu_tbl <-
+  sotu_tbl |>
+  left_join(bing_lexicon, by = join_by("token" == "word"))
+
+# Preview
+glimpse(sotu_tbl)
+```
+From the result above, we can see that there are also lots of words marked as NA (neither positive nor negative in the sentiment analysis system). Let's run a quick frequency test to see how many positive, negative, and NA words we have in the curated dataset: 
+
+```{r}
+#| label: tbl-sentiment-freq
+#| tbl-cap: Frequency table of the `sentiment` variable
+
+# Frequency table of the `sentiment` variable
+sotu_tbl |>
+  count(sentiment) |>
+  kable()
+```
+
+We can see from the result of the frequency test that there are much more NA words compared to the ones with sentiment, because non-content words make up a huge part in languages we use daily. Words like "the", "in", "a", or "think," though not necessarily have emotions embedded on them, are indispensable part of languages. 
+
+# Writing csv file and create data dictionary
+
+Apart from that, the processed dataset should be closed to the original dataset, which may facilitate the potential reproducers to build new projects on our projects. Hence, we leave all those words for this dataset. 
+
+```{r}
+#| label: sentiment-write-data
+
+# Write the dataset
+write_csv(sotu_tbl, "../lab-07/data/derived/sotu_sentiment.csv")
+
+# Create the data dictionary
+create_data_dictionary(
+  sotu_tbl,
+  "../lab-07/data/derived/sotu_sentiment_dd.csv",
+  force = TRUE # To overwrite the existed file
+)
+```
+
+# Resulting Result and data dictionary display
+
+To see the data dictionary created for sentiment analysis, I use the same code in reading in the data dictionary of the curated dataset with a little modification: 
+
+```{r}
+#| label: tbl-sotu-sentiment-dd
+#| tbl-cap: Data dictionary for sentiment analysis
+#| echo: false
+#| message: false
+
+# Load the data dictionary
+read_csv("../lab-07/data/derived/sotu_sentiment_dd.csv") |>
+  kable()
+```
+
+Finally, we check the data structure, using fs function installed before, and to avoid any potential legal issues, we include a short dictories so that any potential reproducers may be able to use the date we processed: 
+
+```{r}
+#| label: dir-structure
+
+# List the contents of the data directory
+dir_tree("../lab-07/data", recurse = 2)
+```
+```{r}
+#| label: gitignore-add-data
+#| eval: false
+
+# Add the data files to the .gitignore file
+cat("../data/derived/sotu_sentiment.csv", file = "../.gitignore", append = TRUE)
+```
+

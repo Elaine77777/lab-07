@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Elaine Lu">
+
+<title>lab-07</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="lab-07-transformation_files/libs/clipboard/clipboard.min.js"></script>
+<script src="lab-07-transformation_files/libs/quarto-html/quarto.js"></script>
+<script src="lab-07-transformation_files/libs/quarto-html/popper.min.js"></script>
+<script src="lab-07-transformation_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="lab-07-transformation_files/libs/quarto-html/anchor.min.js"></script>
+<link href="lab-07-transformation_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="lab-07-transformation_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="lab-07-transformation_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="lab-07-transformation_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="lab-07-transformation_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">lab-07</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Elaine Lu </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"quanteda/quanteda.corpora"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>sotu_corpus <span class="ot">&lt;-</span> quanteda.corpora<span class="sc">::</span>data_corpus_sotu</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>sotu_df <span class="ot">&lt;-</span> tidytext<span class="sc">::</span><span class="fu">tidy</span>(sotu_corpus)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load packages</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)        <span class="co"># reading/ writing datasets</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)        <span class="co"># for `kable()` function</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)        <span class="co"># basic data manipulation</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)    <span class="co"># date manipulation</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidytext)     <span class="co"># text manipulation</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(textdata)     <span class="co"># sentiment lexicons</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(qtalrkit)     <span class="co"># data dictionary creation</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)      <span class="co"># plotting</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fs)           <span class="co"># file system operations</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="description-of-curated-dataset" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Description of Curated Dataset</h1>
+<p>The State of the Union Addresses (SOTU) dataset will be used as the sample operating dataset for this lab. It includes the State of the Union Addresses from 1790 to 2019.</p>
+<p>Then, to see the observations and variables in the dataset, we need to pull out the data dictionary first:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-sotu-curated-dd" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;1: Data dictionary for the State of the Union dataset</caption>
+<colgroup>
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 14%">
+<col style="width: 54%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">variable</th>
+<th style="text-align: left;">name</th>
+<th style="text-align: left;">variable_type</th>
+<th style="text-align: left;">description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">president</td>
+<td style="text-align: left;">President</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">The president’s last name</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">first_name</td>
+<td style="text-align: left;">First Name</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">The president’s first name</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">party</td>
+<td style="text-align: left;">Party</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">The president’s party affiliation</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">date</td>
+<td style="text-align: left;">Date</td>
+<td style="text-align: left;">date</td>
+<td style="text-align: left;">The date the address was given</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">address_type</td>
+<td style="text-align: left;">Address type</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">The type of address (SOTU, other)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">delivery</td>
+<td style="text-align: left;">Delivery modality</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">The modality of the address (spoken, written)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">text</td>
+<td style="text-align: left;">Text</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">The text of the address (audience reactions removed)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>According to above data dictionary, there are 7 variables, including <code>text</code>, <code>president</code>, <code>party</code>, <code>dates</code>, etc. The units of observation in the curated dataset should be <code>text</code>, for the reason that all the other variables are not only tied to and centered at <code>text</code> but also other variables, like <code>predident</code> or <code>party</code> can be repetitive–one president may give several Addresses, while multiple presidents may from the same party.</p>
+</section>
+<section id="date-structure-and-research-question" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Date Structure and Research Question</h1>
+<p>For this lab, I want to conduct a comprative sentiment analysis regarding all the Addresses President Barack Obama and Trump gave. Hence, for this research, I only need data from 2009 to 2019–8 years of Obama and 2 years of Trump, since the data do not include addresses after 2019.</p>
+<section id="units-of-observations-and-variables-regarding-the-research-question" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="units-of-observations-and-variables-regarding-the-research-question"><span class="header-section-number">2.1</span> Units of observations and variables regarding the research question</h2>
+<p>To compare and contract President Obama and Trump’s given the State of the Union Addresses–the message from the president to congress–we only need <code>text</code>, <code>date</code>, <code>address_type</code>, <code>party</code>, and <code>the president's last name</code> for the reason that the Obama is the only president in the dataset and in reality with the last name <em>Obama</em> or <em>Trump</em>, all of his addresses were delivered the same manner, and he only belongs to one party.</p>
+<p>The unit of observation for this project will still be text, since all the analsis will be conducted based on text. However, I will filtered all the text not given by President Obama or Trump and deleted all other irrelevant variables for this research.</p>
+</section>
+<section id="idealized-data-structured-for-the-transformed-dataset" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="idealized-data-structured-for-the-transformed-dataset"><span class="header-section-number">2.2</span> Idealized data structured for the transformed dataset</h2>
+<p>An idealized structure for the topic modeling dataset is seen in <a href="#tbl-topic-ideal">Table&nbsp;2</a>.</p>
+<div id="tbl-topic-ideal" class="anchored">
+<table class="table">
+<caption>Table&nbsp;2: Idealized structure for the topic modeling dataset</caption>
+<colgroup>
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 55%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>variable</th>
+<th>name</th>
+<th>type</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>address_id</td>
+<td>Address ID</td>
+<td>integer</td>
+<td>Unique identifier for each address</td>
+</tr>
+<tr class="even">
+<td>address_year</td>
+<td>Address Year</td>
+<td>integer</td>
+<td>Year of the address (from 2009 to 2017)</td>
+</tr>
+<tr class="odd">
+<td>type</td>
+<td>Word type</td>
+<td>character</td>
+<td>Individual words from the <code>text</code> variable</td>
+</tr>
+<tr class="even">
+<td>frequency</td>
+<td>Frequency</td>
+<td>integer</td>
+<td>Frequency of the word type in the <code>text</code> variable</td>
+</tr>
+<tr class="odd">
+<td>tf_idf</td>
+<td>TF-IDF</td>
+<td>numeric</td>
+<td>TF-IDF of the word type in the <code>text</code> variable</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="transformation" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Transformation</h1>
+<p>First, we need to load the data before processing it:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the data</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>sotu_tbl <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"../lab-07/data/derived/sotu_curated.csv"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(sotu_tbl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 241
+Columns: 7
+$ president    &lt;chr&gt; "Washington", "Washington", "Washington", "Washington", "…
+$ first_name   &lt;chr&gt; "George", "George", "George", "George", "George", "George…
+$ party        &lt;chr&gt; "Independent", "Independent", "Independent", "Independent…
+$ date         &lt;date&gt; 1790-01-08, 1790-12-08, 1791-10-25, 1792-11-06, 1793-12-…
+$ address_type &lt;chr&gt; "SOTU", "SOTU", "SOTU", "SOTU", "SOTU", "SOTU", "SOTU", "…
+$ delivery     &lt;chr&gt; "spoken", "spoken", "spoken", "spoken", "spoken", "spoken…
+$ text         &lt;chr&gt; "Fellow-Citizens of the Senate and House of Representativ…</code></pre>
+</div>
+</div>
+<p>For sentiment analysis, we need to create the following metadata columns:</p>
+<ul>
+<li><code>address_id</code>: Unique identifier for each address</li>
+<li><code>address_year</code>: Year of the address</li>
+</ul>
+<p><code>address_year</code> is essentially date. Hence, we may extract the data from the <code>date</code> variable and add it to a column <code>address_year</code>.</p>
+<p>Then, we filter only addresses from 2009 to 2019:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the address_year</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>sotu_tbl <span class="ot">&lt;-</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  sotu_tbl <span class="sc">|&gt;</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">address_year =</span> <span class="fu">year</span>(date))</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(sotu_tbl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 241
+Columns: 8
+$ president    &lt;chr&gt; "Washington", "Washington", "Washington", "Washington", "…
+$ first_name   &lt;chr&gt; "George", "George", "George", "George", "George", "George…
+$ party        &lt;chr&gt; "Independent", "Independent", "Independent", "Independent…
+$ date         &lt;date&gt; 1790-01-08, 1790-12-08, 1791-10-25, 1792-11-06, 1793-12-…
+$ address_type &lt;chr&gt; "SOTU", "SOTU", "SOTU", "SOTU", "SOTU", "SOTU", "SOTU", "…
+$ delivery     &lt;chr&gt; "spoken", "spoken", "spoken", "spoken", "spoken", "spoken…
+$ text         &lt;chr&gt; "Fellow-Citizens of the Senate and House of Representativ…
+$ address_year &lt;dbl&gt; 1790, 1790, 1791, 1792, 1793, 1794, 1795, 1796, 1797, 179…</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter the data for addresses from Predisent Obama</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>sotu_tbl <span class="ot">&lt;-</span> sotu_tbl <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">year</span>(date) <span class="sc">&gt;=</span> <span class="dv">2009</span> <span class="sc">&amp;</span> <span class="fu">year</span>(date) <span class="sc">&lt;=</span> <span class="dv">2019</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(sotu_tbl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 11
+Columns: 8
+$ president    &lt;chr&gt; "Obama", "Obama", "Obama", "Obama", "Obama", "Obama", "Ob…
+$ first_name   &lt;chr&gt; "Barack", "Barack", "Barack", "Barack", "Barack", "Barack…
+$ party        &lt;chr&gt; "Democratic", "Democratic", "Democratic", "Democratic", "…
+$ date         &lt;date&gt; 2009-02-24, 2010-01-27, 2011-01-25, 2012-01-24, 2013-02-…
+$ address_type &lt;chr&gt; "other", "SOTU", "SOTU", "SOTU", "SOTU", "SOTU", "SOTU", …
+$ delivery     &lt;chr&gt; "spoken", "spoken", "spoken", "spoken", "spoken", "spoken…
+$ text         &lt;chr&gt; "Madam Speaker, Mr. Vice President, Members of Congress, …
+$ address_year &lt;dbl&gt; 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 201…</code></pre>
+</div>
+</div>
+<p>We now down to 9 rows–9 texts to analyze, but still, we need to differentiate the ones from Obama and Trump, and I lable the ones from Obama to be “OB” and the ones from Trump to be TR:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the period</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sotu_tbl <span class="ot">&lt;-</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  sotu_tbl <span class="sc">|&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">period =</span> <span class="fu">case_when</span>(</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    address_year <span class="sc">&lt;</span> <span class="dv">2017</span> <span class="sc">~</span> <span class="st">"OB"</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    address_year <span class="sc">&gt;=</span> <span class="dv">2018</span> <span class="sc">~</span> <span class="st">"TR"</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(sotu_tbl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 11
+Columns: 9
+$ president    &lt;chr&gt; "Obama", "Obama", "Obama", "Obama", "Obama", "Obama", "Ob…
+$ first_name   &lt;chr&gt; "Barack", "Barack", "Barack", "Barack", "Barack", "Barack…
+$ party        &lt;chr&gt; "Democratic", "Democratic", "Democratic", "Democratic", "…
+$ date         &lt;date&gt; 2009-02-24, 2010-01-27, 2011-01-25, 2012-01-24, 2013-02-…
+$ address_type &lt;chr&gt; "other", "SOTU", "SOTU", "SOTU", "SOTU", "SOTU", "SOTU", …
+$ delivery     &lt;chr&gt; "spoken", "spoken", "spoken", "spoken", "spoken", "spoken…
+$ text         &lt;chr&gt; "Madam Speaker, Mr. Vice President, Members of Congress, …
+$ address_year &lt;dbl&gt; 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 201…
+$ period       &lt;chr&gt; "OB", "OB", "OB", "OB", "OB", "OB", "OB", "OB", NA, "TR",…</code></pre>
+</div>
+</div>
+<p>Last but not least, I create an <code>address_id</code> as an unique identifier for every address given:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the address_id</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>sotu_tbl <span class="ot">&lt;-</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  sotu_tbl <span class="sc">|&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">address_id =</span> <span class="fu">row_number</span>())</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(sotu_tbl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 11
+Columns: 10
+$ president    &lt;chr&gt; "Obama", "Obama", "Obama", "Obama", "Obama", "Obama", "Ob…
+$ first_name   &lt;chr&gt; "Barack", "Barack", "Barack", "Barack", "Barack", "Barack…
+$ party        &lt;chr&gt; "Democratic", "Democratic", "Democratic", "Democratic", "…
+$ date         &lt;date&gt; 2009-02-24, 2010-01-27, 2011-01-25, 2012-01-24, 2013-02-…
+$ address_type &lt;chr&gt; "other", "SOTU", "SOTU", "SOTU", "SOTU", "SOTU", "SOTU", …
+$ delivery     &lt;chr&gt; "spoken", "spoken", "spoken", "spoken", "spoken", "spoken…
+$ text         &lt;chr&gt; "Madam Speaker, Mr. Vice President, Members of Congress, …
+$ address_year &lt;dbl&gt; 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 201…
+$ period       &lt;chr&gt; "OB", "OB", "OB", "OB", "OB", "OB", "OB", "OB", NA, "TR",…
+$ address_id   &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11</code></pre>
+</div>
+</div>
+<p>Now, let’s drop all the variables we don’t necessary need for this project to reduce some complexity. All <code>delivery</code> were spoken; variables like <code>first_name</code> or <code>address_type</code> are not really relevant to this project; and since we already classified which period (either <em>OB</em> or <em>TR</em>) each address belongs to, we can now drop all four of these variables, leaving <code>address_id</code>, <code>address_year</code>, <code>president</code>, <code>party</code>, <code>period</code>, <code>text</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>sotu_tbl <span class="ot">&lt;-</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  sotu_tbl <span class="sc">|&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(address_id, address_year, president, party, period, text)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(sotu_tbl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 11
+Columns: 6
+$ address_id   &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+$ address_year &lt;dbl&gt; 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 201…
+$ president    &lt;chr&gt; "Obama", "Obama", "Obama", "Obama", "Obama", "Obama", "Ob…
+$ party        &lt;chr&gt; "Democratic", "Democratic", "Democratic", "Democratic", "…
+$ period       &lt;chr&gt; "OB", "OB", "OB", "OB", "OB", "OB", "OB", "OB", NA, "TR",…
+$ text         &lt;chr&gt; "Madam Speaker, Mr. Vice President, Members of Congress, …</code></pre>
+</div>
+</div>
+<p>The next step is to tokenize <code>text</code>. Since mine dataset is rather small, which only contains 9 rows, there is no need to run diagnostics to check the distribution of address count and party representation by period.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Tokenize the `text` variable</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>sotu_tbl <span class="ot">&lt;-</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  sotu_tbl <span class="sc">|&gt;</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(token, text) <span class="sc">|&gt;</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(address_id) <span class="sc">|&gt;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">token_id =</span> <span class="fu">row_number</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(sotu_tbl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 69,814
+Columns: 7
+$ address_id   &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
+$ address_year &lt;dbl&gt; 2009, 2009, 2009, 2009, 2009, 2009, 2009, 2009, 2009, 200…
+$ president    &lt;chr&gt; "Obama", "Obama", "Obama", "Obama", "Obama", "Obama", "Ob…
+$ party        &lt;chr&gt; "Democratic", "Democratic", "Democratic", "Democratic", "…
+$ period       &lt;chr&gt; "OB", "OB", "OB", "OB", "OB", "OB", "OB", "OB", "OB", "OB…
+$ token        &lt;chr&gt; "madam", "speaker", "mr", "vice", "president", "members",…
+$ token_id     &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17…</code></pre>
+</div>
+</div>
+<p>After complete the tokenization process, we now need to introduce the <code>bing</code> lexicon, which identifies whether or not a word is <em>positive</em> or <em>negative</em> while leaving non-content words alone.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the bing lexicon</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>bing_lexicon <span class="ot">&lt;-</span> <span class="fu">get_sentiments</span>(<span class="st">"bing"</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(bing_lexicon)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 6,786
+Columns: 2
+$ word      &lt;chr&gt; "2-faces", "abnormal", "abolish", "abominable", "abominably"…
+$ sentiment &lt;chr&gt; "negative", "negative", "negative", "negative", "negative", …</code></pre>
+</div>
+</div>
+<p>From the result above, we can see that now we have 6,786 words, and they are identified as either negative or positive, but this new variable <code>sentiment</code> hasn’t been added to our previously curated dataset yet. Hence, we now introduce the <code>left_join()</code> function to “attach” the <code>sentiment</code> column to the original dataset. <code>left_join()</code>, literally, preserves all the rows from the left table, while right join preserves all the rows from the right table:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Join the sotu_tbl and bing_lexicon datasets</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>sotu_tbl <span class="ot">&lt;-</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  sotu_tbl <span class="sc">|&gt;</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(bing_lexicon, <span class="at">by =</span> <span class="fu">join_by</span>(<span class="st">"token"</span> <span class="sc">==</span> <span class="st">"word"</span>))</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Preview</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(sotu_tbl)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 69,814
+Columns: 8
+$ address_id   &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
+$ address_year &lt;dbl&gt; 2009, 2009, 2009, 2009, 2009, 2009, 2009, 2009, 2009, 200…
+$ president    &lt;chr&gt; "Obama", "Obama", "Obama", "Obama", "Obama", "Obama", "Ob…
+$ party        &lt;chr&gt; "Democratic", "Democratic", "Democratic", "Democratic", "…
+$ period       &lt;chr&gt; "OB", "OB", "OB", "OB", "OB", "OB", "OB", "OB", "OB", "OB…
+$ token        &lt;chr&gt; "madam", "speaker", "mr", "vice", "president", "members",…
+$ token_id     &lt;int&gt; 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17…
+$ sentiment    &lt;chr&gt; NA, NA, NA, "negative", NA, NA, NA, NA, NA, NA, NA, NA, N…</code></pre>
+</div>
+</div>
+<p>From the result above, we can see that there are also lots of words marked as NA (neither positive nor negative in the sentiment analysis system). Let’s run a quick frequency test to see how many positive, negative, and NA words we have in the curated dataset:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Frequency table of the `sentiment` variable</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>sotu_tbl <span class="sc">|&gt;</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(sentiment) <span class="sc">|&gt;</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="tbl-sentiment-freq" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;3: Frequency table of the <code>sentiment</code> variable</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">sentiment</th>
+<th style="text-align: right;">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">negative</td>
+<td style="text-align: right;">1687</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">positive</td>
+<td style="text-align: right;">3141</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NA</td>
+<td style="text-align: right;">64986</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>We can see from the result of the frequency test that there are much more NA words compared to the ones with sentiment, because non-content words make up a huge part in languages we use daily. Words like “the”, “in”, “a”, or “think,” though not necessarily have emotions embedded on them, are indispensable part of languages.</p>
+</section>
+<section id="writing-csv-file-and-create-data-dictionary" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Writing csv file and create data dictionary</h1>
+<p>Apart from that, the processed dataset should be closed to the original dataset, which may facilitate the potential reproducers to build new projects on our projects. Hence, we leave all those words for this dataset.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Write the dataset</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(sotu_tbl, <span class="st">"../lab-07/data/derived/sotu_sentiment.csv"</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the data dictionary</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">create_data_dictionary</span>(</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  sotu_tbl,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"../lab-07/data/derived/sotu_sentiment_dd.csv"</span>,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">force =</span> <span class="cn">TRUE</span> <span class="co"># To overwrite the existed file</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 4
+  variable     name  variable_type description
+  &lt;chr&gt;        &lt;chr&gt; &lt;chr&gt;         &lt;chr&gt;      
+1 address_id   &lt;NA&gt;  integer       &lt;NA&gt;       
+2 address_year &lt;NA&gt;  numeric       &lt;NA&gt;       
+3 president    &lt;NA&gt;  character     &lt;NA&gt;       
+4 party        &lt;NA&gt;  character     &lt;NA&gt;       
+5 period       &lt;NA&gt;  character     &lt;NA&gt;       
+6 token        &lt;NA&gt;  character     &lt;NA&gt;       
+7 token_id     &lt;NA&gt;  integer       &lt;NA&gt;       
+8 sentiment    &lt;NA&gt;  character     &lt;NA&gt;       </code></pre>
+</div>
+</div>
+</section>
+<section id="resulting-result-and-data-dictionary-display" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Resulting Result and data dictionary display</h1>
+<p>To see the data dictionary created for sentiment analysis, I use the same code in reading in the data dictionary of the curated dataset with a little modification:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="tbl-sotu-sentiment-dd" class="anchored">
+<table class="table table-sm table-striped small">
+<caption>Table&nbsp;4: Data dictionary for sentiment analysis</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">variable</th>
+<th style="text-align: left;">name</th>
+<th style="text-align: left;">variable_type</th>
+<th style="text-align: left;">description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">address_id</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">integer</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">address_year</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">president</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">party</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">period</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">token</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">token_id</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">integer</td>
+<td style="text-align: left;">NA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">sentiment</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">NA</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<p>Finally, we check the data structure, using fs function installed before, and to avoid any potential legal issues, we include a short dictories so that any potential reproducers may be able to use the date we processed:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># List the contents of the data directory</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="fu">dir_tree</span>(<span class="st">"../lab-07/data"</span>, <span class="at">recurse =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>../lab-07/data
+├── analysis
+├── derived
+│   ├── sotu_curated.csv
+│   ├── sotu_curated_dd.csv
+│   ├── sotu_sentiment.csv
+│   └── sotu_sentiment_dd.csv
+└── original</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the data files to the .gitignore file</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"../data/derived/sotu_sentiment.csv"</span>, <span class="at">file =</span> <span class="st">"../.gitignore"</span>, <span class="at">append =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
