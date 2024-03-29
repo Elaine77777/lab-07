@@ -18,6 +18,7 @@ The aim is to gain possible insights into changes in presidential rhetoric befor
 
 To facilitate the transformation process, I will load various R packages.
 
+
 ```{r load-packages}
 #| label: load-packages
 #| message: false
